@@ -36,7 +36,7 @@ Controls skeleton flip a given Spine component.
 
 **To use:**
 1. Add `SkeletonAnimationPlayableHandle` component to your SkeletonAnimation GameObject.
-2. With an existing Unity Playable Direction, and in the Unity Timeline window, right-click on an empty space on the left and choose **Spine.Unity.Playables** > **Spine Skeleton Flip Track**.
+2. With an existing Unity Playable Director, and in the Unity Timeline window, right-click on an empty space on the left and choose **Spine.Unity.Playables** > **Spine Skeleton Flip Track**.
 3. Drag the SkeletonAnimation GameObject onto the empty reference property of the new Spine Skeleton Flip Track.
 4. Right-click on the row in an empty space in the Timeline dopesheet and choose **Add Spine Skeleton Flip Clip Clip**.
 5. Adjust the start and end times of the new clip, name it appropriately at the top of the Inspector, and choose the desired FlipX and FlipY values.
@@ -53,7 +53,7 @@ Sets Animations on the target SkeletonAnimation's AnimationState (via SetAnimati
 - Currently only SkeletonAnimation (directly)
 
 **To use:**
-1. With an existing Unity Playable Direction, and in the Unity Timeline window, right-click on an empty space on the left and choose **Spine.Unity.Playables** > **Spine Animation State Track**.
+1. With an existing Unity Playable Director, and in the Unity Timeline window, right-click on an empty space on the left and choose **Spine.Unity.Playables** > **Spine Animation State Track**.
 2. Drag the SkeletonAnimation GameObject onto the empty reference property of the new Spine AnimationState Track.
 3. Right-click on the row in an empty space in the Timeline dopesheet and choose **Add Spine Animation State Clip Clip**.
 4. Adjust the start and end times of the new clip, name it appropriately at the top of the Inspector.
