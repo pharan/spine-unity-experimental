@@ -3,7 +3,7 @@ If this documentation contains mistakes or doesn't cover some questions, please 
 
 # Spine-Unity Timeline Playables
 
-![](add-menu.png)
+![](add-menu.png)  
 
 ## Spine Animation Track
 Controls the skeleton pose a given Spine component with animations.
@@ -28,7 +28,7 @@ Controls the skeleton pose a given Spine component with animations.
 
 
 ## Spine Skeleton Flip Track
-![](skeleton-flip-clip-inspector.png)
+![](skeleton-flip-clip-inspector.png)  
 Controls skeleton flip a given Spine component.
 
 **Status:**
@@ -46,7 +46,7 @@ Controls skeleton flip a given Spine component.
 - At the end of the timeline, the track will revert the skeleton flip to the flip values it captures when it starts playing that timeline. 
 
 ## Spine AnimationState Track
-![](animationstate-clip-inspector.png)
+![](animationstate-clip-inspector.png)  
 Sets Animations on the target SkeletonAnimation's AnimationState (via SetAnimation).
 
 **Status:**
