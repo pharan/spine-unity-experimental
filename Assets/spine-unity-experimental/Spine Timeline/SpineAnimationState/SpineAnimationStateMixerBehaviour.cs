@@ -42,27 +42,31 @@ namespace Spine.Unity.Playables {
 
 		// NOTE: This function is called at runtime and edit time. Keep that in mind when setting the values of properties.
 		public override void ProcessFrame (Playable playable, FrameData info, object playerData) {
-			var trackBinding = playerData as SkeletonAnimation;
-			if (trackBinding == null) return;
+			var spineComponent = playerData as SkeletonAnimation;
+			if (spineComponent == null) return;
+
+			var skeleton = spineComponent.Skeleton;
+			var state = spineComponent.AnimationState;
 
 			if (!Application.isPlaying) {
 				#if SPINE_EDITMODEPOSE
-				PreviewEditModePose(playable, trackBinding);
+				PreviewEditModePose(playable, spineComponent);
 				#endif
 				return;
 			}
 
 			int inputCount = playable.GetInputCount();
 
+			// Ensure correct buffer size.
 			if (this.lastInputWeights == null || this.lastInputWeights.Length < inputCount) {
 				this.lastInputWeights = new float[inputCount];
 
 				for (int i = 0; i < inputCount; i++)
-					this.lastInputWeights[i] = 0f;				
+					this.lastInputWeights[i] = default(float);				
 			}
-
 			var lastInputWeights = this.lastInputWeights;
 
+			// Check all clips. If a clip that was weight 0 turned into weight 1, call SetAnimation.
 			for (int i = 0; i < inputCount; i++) {
 				float lastInputWeight = lastInputWeights[i];
 				float inputWeight = playable.GetInputWeight(i);
@@ -71,35 +75,37 @@ namespace Spine.Unity.Playables {
 
 				if (trackStarted) {
 					ScriptPlayable<SpineAnimationStateBehaviour> inputPlayable = (ScriptPlayable<SpineAnimationStateBehaviour>)playable.GetInput(i);
-					SpineAnimationStateBehaviour input = inputPlayable.GetBehaviour();
-					Spine.Animation animation = trackBinding.Skeleton.Data.FindAnimation(input.animationName);
+					SpineAnimationStateBehaviour clipData = inputPlayable.GetBehaviour();
 
-					if (animation != null) {
-						Spine.TrackEntry trackEntry = trackBinding.AnimationState.SetAnimation(0, input.animationName, input.loop);
-
-						trackEntry.EventThreshold = input.eventThreshold;
-						trackEntry.DrawOrderThreshold = input.drawOrderThreshold;
-						trackEntry.AttachmentThreshold = input.attachmentThreshold;
-
-						if (input.customDuration)
-							trackEntry.MixDuration = input.mixDuration;
-					} else if (string.IsNullOrEmpty(input.animationName)) {
-						float mixDuration = input.customDuration ? input.mixDuration : trackBinding.AnimationState.Data.DefaultMix;
-						trackBinding.AnimationState.SetEmptyAnimation(0, mixDuration);
+					if (string.IsNullOrEmpty(clipData.animationName)) {
+						float mixDuration = clipData.customDuration ? clipData.mixDuration : state.Data.DefaultMix;
+						state.SetEmptyAnimation(0, mixDuration);
 						continue;
+					} else {
+						Spine.Animation spineAnimation = skeleton.Data.FindAnimation(clipData.animationName);
+						if (spineAnimation != null) {
+							Spine.TrackEntry trackEntry = state.SetAnimation(0, spineAnimation, clipData.loop);
+
+							//trackEntry.TrackTime = (float)inputPlayable.GetTime(); // More accurate time-start?
+							trackEntry.EventThreshold = clipData.eventThreshold;
+							trackEntry.DrawOrderThreshold = clipData.drawOrderThreshold;
+							trackEntry.AttachmentThreshold = clipData.attachmentThreshold;
+
+							if (clipData.customDuration)
+								trackEntry.MixDuration = clipData.mixDuration;
+						}
+						//else Debug.LogWarningFormat("Animation named '{0}' not found", clipData.animationName);
 					}
-//					else {
-//						Debug.LogWarningFormat("Animation named '{0}' not found", input.animationName);
-//					}
+
 
 				}
 			}
 		}
 
 		#if SPINE_EDITMODEPOSE
-		public void PreviewEditModePose (Playable playable, SkeletonAnimation trackBinding) {
+		public void PreviewEditModePose (Playable playable, SkeletonAnimation spineComponent) {
 			if (Application.isPlaying) return;
-			if (trackBinding == null) return;
+			if (spineComponent == null) return;
 
 			int inputCount = playable.GetInputCount();
 			int lastOneWeight = -1;
@@ -111,11 +117,12 @@ namespace Spine.Unity.Playables {
 
 			if (lastOneWeight != -1) {
 				ScriptPlayable<SpineAnimationStateBehaviour> inputPlayableClip = (ScriptPlayable<SpineAnimationStateBehaviour>)playable.GetInput(lastOneWeight);
-				SpineAnimationStateBehaviour clipBehaviourData = inputPlayableClip.GetBehaviour();
+				SpineAnimationStateBehaviour clipData = inputPlayableClip.GetBehaviour();
 
-				var skeleton = trackBinding.Skeleton;
-				var skeletonData = trackBinding.Skeleton.Data;
+				var skeleton = spineComponent.Skeleton;
+				var skeletonData = spineComponent.Skeleton.Data;
 
+				// Getting the from-animation here because it's required to get the mix information from AnimationStateData.
 				ScriptPlayable<SpineAnimationStateBehaviour> fromClip;
 				Animation fromAnimation = null;
 				float fromClipTime = 0;
@@ -128,11 +135,12 @@ namespace Spine.Unity.Playables {
 					fromClipLoop = fromClipData.loop;
 				}
 					
-				Animation toAnimation = skeletonData.FindAnimation(clipBehaviourData.animationName);
+				Animation toAnimation = skeletonData.FindAnimation(clipData.animationName);
 				float toClipTime = (float)inputPlayableClip.GetTime();
-				float mixDuration = clipBehaviourData.mixDuration;
-				if (!clipBehaviourData.customDuration && fromAnimation != null) {
-					mixDuration = trackBinding.AnimationState.Data.GetMix(fromAnimation, toAnimation);
+				float mixDuration = clipData.mixDuration;
+
+				if (!clipData.customDuration && fromAnimation != null) {
+					mixDuration = spineComponent.AnimationState.Data.GetMix(fromAnimation, toAnimation);
 				}
 
 				// Approximate what AnimationState might do at runtime.
@@ -141,12 +149,11 @@ namespace Spine.Unity.Playables {
 					float fauxFromAlpha = (1f - toClipTime/mixDuration);
 					fauxFromAlpha = fauxFromAlpha > 0.5f ? 1f : fauxFromAlpha * 2f;  // fake value, but reduce dip.
 					fromAnimation.Apply(skeleton, 0, fromClipTime, fromClipLoop, null, fauxFromAlpha, MixPose.Setup, MixDirection.Out); //fromAnimation.PoseSkeleton(skeleton, fromClipTime, fromClipLoop);
-					toAnimation.Apply(skeleton, 0, toClipTime, clipBehaviourData.loop, null, toClipTime/mixDuration, MixPose.Current, MixDirection.In);
+					toAnimation.Apply(skeleton, 0, toClipTime, clipData.loop, null, toClipTime/mixDuration, MixPose.Current, MixDirection.In);
 				} else {
 					skeleton.SetToSetupPose();
-					toAnimation.PoseSkeleton(skeleton, toClipTime, clipBehaviourData.loop);
+					toAnimation.PoseSkeleton(skeleton, toClipTime, clipData.loop);
 				}
-
 
 			}
 			// Do nothing outside of the first clip and the last clip.
