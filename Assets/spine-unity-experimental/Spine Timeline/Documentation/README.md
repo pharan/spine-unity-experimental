@@ -59,12 +59,14 @@ Sets Animations on the target SkeletonAnimation's AnimationState (via SetAnimati
 4. Adjust the start and end times of the new clip, name it appropriately at the top of the Inspector.
 5. Click on the clip inspector's SkeletonDataAsset field and choose your target skeleton's SkeletonDataAsset. This will enable the animation name dropdown to appear.
 6. Choose the appropriate animation name, loop, and mix settings.
-7. For easier readability, rename your clip to the animation name or something descriptive. 
+- For easier readability, rename your clip to the animation name or something descriptive.
+- To avoid having to do steps 4-6 repeatedly, use the Duplicate function (`CTRL`/`CMD` + `D`)  
 
 **Track Behavior**
 - `AnimationState.SetAnimation` will be called at the beginning of every clip based on the animationName.
-- If a clip has no name specified, it will call SetEmptyAnimation instead.
-- If the animation with the provided animationName is not found, it will do nothing (the previous animation will continue playing normally).
+- Clip durations don't matter. Animations won't be cleared where there is no active clip at certain slices of time.
+- **EMPTY ANIMATION**: If a clip has no name specified, it will call SetEmptyAnimation instead.
+- **ERROR HANDLING**: If the animation with the provided animationName is not found, it will do nothing (the previous animation will continue playing normally).
 - Animations playing before the timeline starts playing will not be interrupted until the first clip starts playing.
 - At the end of the last clip and at the end of the timeline, nothing happens. This means the effect of the last clip's SetAnimation call will persist until you give other commands to that AnimationState.
 - If "custom duration" is unchecked, it will do a normal lookup of the AnimationState data's specified transition-pair mix setting, or the default mix.
