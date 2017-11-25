@@ -6,14 +6,13 @@ using Spine.Unity.Playables;
 
 //[CustomPropertyDrawer(typeof(SpineAnimationStateBehaviour))]
 public class SpineAnimationStateDrawer : PropertyDrawer {
+	/*
 	public override float GetPropertyHeight (SerializedProperty property, GUIContent label) {
 		const int fieldCount = 8;
 		return fieldCount * EditorGUIUtility.singleLineHeight;
 	}
 
 	public override void OnGUI (Rect position, SerializedProperty property, GUIContent label) {
-		
-
 		SerializedProperty skeletonDataAssetProp = property.FindPropertyRelative("skeletonDataAsset");
 		SerializedProperty animationNameProp = property.FindPropertyRelative("animationName");
 		SerializedProperty loopProp = property.FindPropertyRelative("loop");
@@ -46,4 +45,5 @@ public class SpineAnimationStateDrawer : PropertyDrawer {
 		singleFieldRect.y += lineHeightWithSpacing;
 		EditorGUI.PropertyField(singleFieldRect, drawOrderProp);
 	}
+	*/
 }
