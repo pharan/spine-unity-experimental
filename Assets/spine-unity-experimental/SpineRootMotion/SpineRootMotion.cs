@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
  * Spine Runtimes Software License v2.5
  *
  * Copyright (c) 2013-2016, Esoteric Software
@@ -57,10 +57,16 @@ namespace Spine.Unity.Modules {
 		[Header("Optional")]
 		[Tooltip("OPTIONAL Rigidbody2D: Set this if you want this component to apply the root motion to a Rigidbody2D. \n\nNote that animation and physics updates are not always in sync. Some jittering may result at certain framerates.")]
 		public Rigidbody2D rb;
+
 		[SpineBone]
 		[SerializeField]
 		[Tooltip("OPTIONAL: If you are using root motion on an immediate child of the root bone, you would add the other immediate children of the root bone (for example, IK targets).\n\nAlso see the 'Refresh Sibling Bones' context menu item. ")]
 		protected List<string> siblingBoneNames = new List<string>();
+
+		[SpineBone]
+		[SerializeField]
+		[Tooltip("OPTIONAL: Force chosen bones to stay at their local position 0 during frame that root motion is applied. This is useful if you animated root motion with certain offsets in the animation you don't want applied at runtime.")]
+		protected List<string> fixedBoneNames = new List<string>();
 		#endregion
 
 		protected Bone bone;
@@ -68,6 +74,8 @@ namespace Spine.Unity.Modules {
 		/// <summary>
 		/// If you are using root motion on an immediate child of the root bone, you would add the other immediate children of the root bone (for example, IK targets).</summary>
 		public readonly List<Bone> siblingBones = new List<Bone>();
+
+		public readonly List<Bone> fixedBones = new List<Bone>();
 
 		ISkeletonComponent skeletonComponent;
 		AnimationState state;
@@ -111,9 +119,15 @@ namespace Spine.Unity.Modules {
 
 			var skeleton = s.Skeleton;
 			siblingBones.Clear();
-			foreach (var bn in siblingBoneNames) {
+			foreach (string bn in siblingBoneNames) {
 				var b = skeleton.FindBone(bn);
 				if (b != null) siblingBones.Add(b);
+			}
+
+			fixedBones.Clear();
+			foreach (string bn in fixedBoneNames) {
+				var b = skeleton.FindBone(bn);
+				if (b != null) fixedBones.Add(b);
 			}
 
 			useRigidBody |= (rb != null);
@@ -156,7 +170,7 @@ namespace Spine.Unity.Modules {
 						}
 						float mixAndAlpha = track.alpha * next.interruptAlpha * (1 - mix);
 						currentDelta *= mixAndAlpha;
-					} else {						
+					} else {
 						if (track.mixDuration == 0) {
 							mix = 1;
 						} else {
@@ -200,6 +214,11 @@ namespace Spine.Unity.Modules {
 
 			if (useX) bone.x = 0;
 			if (useY) bone.y = 0;
+
+			foreach (var b in fixedBones) {
+				b.x = 0;
+				b.y = 0;
+			}
 		}
 
 		// If not using Rigidbody2D, you can comment out FixedUpdate.
